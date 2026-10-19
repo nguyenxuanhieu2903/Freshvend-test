@@ -1,0 +1,138 @@
+classDiagram
+    class User {
+        -Long id
+        -String username
+        -String passwordHash
+        -String fullName
+        -String email
+        -UserRole role
+        -Boolean isActive
+        -LocalDateTime createdAt
+        +login(password) Boolean
+        +changePassword(newPass)
+        +deactivate()
+    }
+
+    class Product {
+        -Long id
+        -String name
+        -String description
+        -String imageUrl
+        -BigDecimal price
+        -Integer stockQuantity
+        -Integer lowStockThreshold
+        -ProductStatus status
+        +isAvailable(requestedQty) Boolean
+        +reduceStock(qty)
+        +restock(qty)
+        +discontinue()
+    }
+
+    class Order {
+        -Long id
+        -String orderCode
+        -User customer
+        -BigDecimal totalAmount
+        -OrderStatus orderStatus
+        -PaymentStatus paymentStatus
+        -LocalDateTime createdAt
+        +addItem(product, qty)
+        +calculateTotal() BigDecimal
+        +markPaid()
+        +markCompleted()
+        +markNeedsHandling()
+    }
+
+    class OrderItem {
+        -Long id
+        -Order order
+        -Product product
+        -Integer quantity
+        -BigDecimal unitPrice
+        -BigDecimal subtotal
+        +calculateSubtotal() BigDecimal
+    }
+
+    class Payment {
+        -Long id
+        -Order order
+        -String transactionCode
+        -BigDecimal amount
+        -PaymentResult status
+        -String paymentMethod
+        -LocalDateTime processedAt
+        +processSimulated() Boolean
+    }
+
+    class DispensingLog {
+        -Long id
+        -Order order
+        -Integer attemptNumber
+        -DispensingResult result
+        -String failureReason
+        -LocalDateTime attemptedAt
+    }
+
+    class RestockHistory {
+        -Long id
+        -Product product
+        -User operator
+        -Integer quantity
+        -LocalDate expiryDate
+        -LocalDateTime restockedAt
+    }
+
+    class IoTDevice {
+        -Long id
+        -String deviceCode
+        -String deviceName
+        -DeviceStatus status
+        -LocalDateTime lastHeartbeat
+        +isOnline(timeoutSeconds) Boolean
+        +recordHeartbeat()
+    }
+
+    class SensorData {
+        -Long id
+        -IoTDevice device
+        -BigDecimal temperature
+        -DoorStatus doorStatus
+        -DataSource dataSource
+        -LocalDateTime recordedAt
+    }
+
+    class Alert {
+        -Long id
+        -IoTDevice device
+        -Product product
+        -AlertType alertType
+        -String message
+        -AlertSeverity severity
+        -Boolean isAcknowledged
+        +acknowledge(User user)
+    }
+
+    class Incident {
+        -Long id
+        -User reportedBy
+        -Alert linkedAlert
+        -String title
+        -String description
+        -IncidentStatus status
+        -String resolutionNote
+        +startProgress()
+        +resolve(note, resolver)
+        +close()
+    }
+
+    User "1" --> "*" Order : places
+    User "1" --> "*" RestockHistory : executes
+    User "1" --> "*" Incident : handles
+    Order "1" *-- "1..*" OrderItem : contains
+    Order "1" --> "0..1" Payment : settled by
+    Order "1" --> "*" DispensingLog : audited by
+    OrderItem "*" --> "1" Product : refers to
+    Product "1" --> "*" RestockHistory : tracked by
+    IoTDevice "1" --> "*" SensorData : emits
+    IoTDevice "1" --> "*" Alert : generates
+    Alert "0..1" --> "*" Incident : escalates to

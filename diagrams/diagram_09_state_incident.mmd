@@ -1,0 +1,11 @@
+stateDiagram-v2
+    [*] --> OPEN : Tạo sự cố từ Alert hoặc do Operator ghi nhận
+
+    OPEN --> IN_PROGRESS : Operator tiếp nhận & bắt đầu xử lý tại máy
+    IN_PROGRESS --> OPEN : Tạm ngưng do thiếu linh kiện / vật tư
+
+    IN_PROGRESS --> RESOLVED : Operator ghi nhận biện pháp & kết quả xử lý thành công
+    RESOLVED --> IN_PROGRESS : Phát sinh lỗi lại trong thời gian theo dõi
+
+    RESOLVED --> CLOSED : Admin / Hệ thống nghiệm thu xác nhận đóng sự cố
+    CLOSED --> [*]

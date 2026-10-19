@@ -1,0 +1,153 @@
+erDiagram
+    USERS {
+        bigint id PK
+        varchar username UK
+        varchar password_hash
+        varchar full_name
+        varchar email
+        varchar role "CUSTOMER, OPERATOR, ADMIN"
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PRODUCT {
+        bigint id PK
+        varchar name
+        text description
+        varchar image_url
+        decimal price
+        integer stock_quantity
+        integer low_stock_threshold
+        varchar status "ACTIVE, DISCONTINUED"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ORDERS {
+        bigint id PK
+        varchar order_code UK
+        bigint customer_id FK "nullable (Anonymous)"
+        decimal total_amount
+        varchar order_status "PENDING_PAYMENT, PAID, DISPENSING, COMPLETED, PAYMENT_FAILED, NEEDS_HANDLING, CANCELLED"
+        varchar payment_status "NOT_STARTED, SUCCESS, FAILED, REFUND_PENDING, REFUNDED"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ORDER_ITEM {
+        bigint id PK
+        bigint order_id FK
+        bigint product_id FK
+        integer quantity
+        decimal unit_price
+        decimal subtotal
+    }
+
+    PAYMENT {
+        bigint id PK
+        bigint order_id FK
+        varchar transaction_code UK
+        decimal amount
+        varchar status "SUCCESS, FAILED"
+        varchar payment_method "SIMULATED_QR, SIMULATED_EWALLET"
+        timestamp processed_at
+    }
+
+    DISPENSING_LOG {
+        bigint id PK
+        bigint order_id FK
+        integer attempt_number
+        varchar result "SUCCESS, FAILED, RETRY"
+        varchar failure_reason
+        timestamp attempted_at
+    }
+
+    RESTOCK_HISTORY {
+        bigint id PK
+        bigint product_id FK
+        bigint operator_id FK
+        integer quantity
+        date expiry_date
+        timestamp restocked_at
+    }
+
+    IOT_DEVICE {
+        bigint id PK
+        varchar device_code UK
+        varchar device_name
+        varchar device_type "ESP32"
+        varchar status "ONLINE, OFFLINE, UNKNOWN"
+        timestamp last_heartbeat
+        timestamp created_at
+    }
+
+    SENSOR_DATA {
+        bigint id PK
+        bigint device_id FK
+        decimal temperature
+        varchar door_status "OPEN, CLOSED, UNKNOWN"
+        varchar data_source "REAL, SIMULATED"
+        timestamp recorded_at
+        timestamp received_at
+    }
+
+    ALERT {
+        bigint id PK
+        bigint device_id FK "nullable"
+        bigint product_id FK "nullable"
+        varchar alert_type "LOW_STOCK, TEMPERATURE_HIGH, TEMPERATURE_LOW, DEVICE_OFFLINE, DOOR_OPEN, PRODUCT_EXPIRY"
+        varchar message
+        varchar severity "INFO, WARNING, CRITICAL"
+        boolean is_acknowledged
+        bigint acknowledged_by FK "nullable"
+        timestamp acknowledged_at
+        timestamp created_at
+    }
+
+    INCIDENT {
+        bigint id PK
+        bigint reported_by FK
+        bigint alert_id FK "nullable"
+        varchar title
+        text description
+        varchar status "OPEN, IN_PROGRESS, RESOLVED, CLOSED"
+        text resolution_note
+        bigint resolved_by FK "nullable"
+        timestamp resolved_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    AUDIT_LOG {
+        bigint id PK
+        bigint user_id FK
+        varchar action
+        varchar entity_type
+        bigint entity_id
+        text details
+        timestamp performed_at
+    }
+
+    SYSTEM_CONFIG {
+        bigint id PK
+        varchar config_key UK
+        varchar config_value
+        varchar description
+        bigint updated_by FK
+        timestamp updated_at
+    }
+
+    USERS ||--o{ ORDERS : "places"
+    USERS ||--o{ RESTOCK_HISTORY : "performs"
+    USERS ||--o{ INCIDENT : "reports"
+    USERS ||--o{ AUDIT_LOG : "triggers"
+    PRODUCT ||--o{ ORDER_ITEM : "included in"
+    PRODUCT ||--o{ RESTOCK_HISTORY : "stocked"
+    PRODUCT ||--o{ ALERT : "monitored by"
+    ORDERS ||--|{ ORDER_ITEM : "contains"
+    ORDERS ||--o{ PAYMENT : "paid by"
+    ORDERS ||--o{ DISPENSING_LOG : "tracks"
+    IOT_DEVICE ||--o{ SENSOR_DATA : "reports"
+    IOT_DEVICE ||--o{ ALERT : "triggers"
+    ALERT ||--o{ INCIDENT : "generates"

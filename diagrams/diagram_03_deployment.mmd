@@ -1,0 +1,34 @@
+flowchart TD
+    subgraph Client_Devices["Thiết bị đầu cuối (Client Devices)"]
+        T_SCREEN["Màn hình cảm ứng bán hàng<br/>(Google Chrome Kiosk Mode)"]
+        OP_MOB["Thiết bị di động của Operator<br/>(Mobile Web Browser)"]
+        AD_PC["Máy tính Quản trị viên<br/>(Desktop Web Browser)"]
+    end
+
+    subgraph Docker_Host["Máy chủ Docker Host (Local Server / Cloud VM)"]
+        subgraph Docker_Network["Docker Bridge Network: freshvend-network"]
+            subgraph Container_App["Container: freshvend_app"]
+                APP["Spring Boot 3 REST Application<br/>(Eclipse Temurin JRE 21 Alpine)<br/>Chạy non-root (appuser)<br/>Port nội bộ: 8080"]
+            end
+
+            subgraph Container_DB["Container: freshvend_db"]
+                PG["PostgreSQL 16 Engine<br/>Database: freshvend_db<br/>Healthcheck: pg_isready<br/>Port nội bộ: 5432"]
+            end
+        end
+
+        VOL[("Docker Volume:<br/>freshvend_pgdata<br/>(Lưu trữ dữ liệu bền vững)")]
+        PG --- VOL
+    end
+
+    subgraph Hardware_Node["Phần cứng máy bán hàng tại chỗ (On-Premise Machine)"]
+        ESP32["Vi điều khiển ESP32<br/>(Module Wi-Fi 2.4GHz)"]
+        SENS_ACT["Linh kiện ngoại vi:<br/>• Cảm biến DHT22 (Pin GPIO)<br/>• Cảm biến cửa từ<br/>• Động cơ Servo MG996R"]
+        ESP32 --- SENS_ACT
+    end
+
+    T_SCREEN -->|"HTTP/HTTPS Port 8080"| APP
+    OP_MOB -->|"HTTP/HTTPS Port 8080"| APP
+    AD_PC -->|"HTTP/HTTPS Port 8080"| APP
+
+    APP -->|"JDBC Connection Port 5432"| PG
+    ESP32 -->|"Wi-Fi REST API Port 8080"| APP

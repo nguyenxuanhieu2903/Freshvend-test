@@ -1,0 +1,57 @@
+flowchart TD
+    subgraph Client_Layer["1. TẦNG GIAO DIỆN NGƯỜI DÙNG (Client Layer)"]
+        CUI["Giao diện Khách hàng (14-inch Touchscreen Web UI)<br/>• Danh mục sản phẩm & Giỏ hàng<br/>• Thanh toán mô phỏng & Biên nhận"]
+        OUI["Cổng Vận hành Operator (Responsive Web)<br/>• Nhập hàng, hạn sử dụng<br/>• Quản lý sự cố & Cảnh báo"]
+        AUI["Cổng Quản trị Admin (Web Portal)<br/>• Quản lý sản phẩm, giá, tài khoản<br/>• Cấu hình hệ thống & Báo cáo PDF/CSV"]
+    end
+
+    subgraph Gateway_Security["2. BẢO MẬT & ĐIỀU HƯỚNG (Security & Routing)"]
+        SEC["Spring Security + JWT Filter<br/>• TLS 1.2+ Encryption<br/>• Role-Based Access Control (RBAC)"]
+    end
+
+    subgraph Backend_Layer["3. TẦNG NGHIỆP VỤ (Backend Spring Boot 3 & Java 21)"]
+        AUTH_SVC["Auth Service<br/>(Đăng nhập, Token, BCrypt)"]
+        PROD_SVC["Product & Catalog Service<br/>(Sản phẩm, giá bán, danh mục)"]
+        ORD_SVC["Order & Dispensing Service<br/>(Xử lý đơn, nhả hàng, Retry)"]
+        PAY_SVC["Simulated Payment Service<br/>(Mô phỏng QR, hoàn tiền)"]
+        INV_SVC["Inventory Service<br/>(Tồn kho, nhập hàng, hạn dùng, FIFO)"]
+        IOT_SVC["IoT & Telemetry Service<br/>(Nhiệt độ, cửa mở, Heartbeat)"]
+        ALERT_SVC["Alert & Notification Service<br/>(Cảnh báo ngưỡng, sự cố)"]
+        REP_SVC["Reporting & Export Service<br/>(Doanh thu, tồn kho, xuất PDF/CSV)"]
+    end
+
+    subgraph Data_Layer["4. TẦNG DỮ LIỆU (Database Layer)"]
+        DB[("PostgreSQL 16 Database<br/>freshvend_db<br/>(Spring Data JPA / Hibernate)")]
+    end
+
+    subgraph IoT_Layer["5. TẦNG THIẾT BỊ IOT & PHẦN CỨNG (IoT & Hardware Layer)"]
+        ESP["Vi điều khiển ESP32 DevKit<br/>(Wi-Fi HTTP Client / JSON Payload)"]
+        DHT["Cảm biến nhiệt độ DHT22<br/>(Giám sát chuỗi lạnh 2-8°C)"]
+        DOOR["Cảm biến trạng thái cửa<br/>(Phát hiện mở cửa trái phép)"]
+        SERVO["Động cơ Servo Motor<br/>(Cơ cấu nhả trái cây tự động)"]
+    end
+
+    CUI -->|"HTTP REST / JSON"| SEC
+    OUI -->|"HTTP REST / JSON"| SEC
+    AUI -->|"HTTP REST / JSON"| SEC
+
+    SEC --> AUTH_SVC
+    SEC --> PROD_SVC
+    SEC --> ORD_SVC
+    SEC --> INV_SVC
+    SEC --> IOT_SVC
+    SEC --> ALERT_SVC
+    SEC --> REP_SVC
+
+    ORD_SVC --> PAY_SVC
+    ORD_SVC --> INV_SVC
+    ORD_SVC -->|"Lệnh nhả hàng"| IOT_SVC
+    IOT_SVC --> ALERT_SVC
+
+    AUTH_SVC & PROD_SVC & ORD_SVC & INV_SVC & IOT_SVC & ALERT_SVC & REP_SVC --> DB
+
+    ESP -->|"Gửi Telemetry (HTTP POST)"| IOT_SVC
+    IOT_SVC -->|"Phản hồi lệnh Servo"| ESP
+    ESP --- DHT
+    ESP --- DOOR
+    ESP --- SERVO

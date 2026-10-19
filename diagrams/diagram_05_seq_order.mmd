@@ -1,0 +1,59 @@
+sequenceDiagram
+    autonumber
+    actor C as Khách hàng (Customer)
+    participant UI as Giao diện Kiosk
+    participant API as Backend OrderService
+    participant PAY as PaymentService
+    participant DB as PostgreSQL DB
+    participant IOT as IoT/Hardware (ESP32 & Servo)
+
+    C->>UI: Chọn sản phẩm & số lượng vào giỏ hàng
+    UI->>API: POST /api/orders (Danh sách items)
+    API->>DB: Kiểm tra trạng thái ACTIVE & tồn kho đủ (stockQuantity)
+    alt Tồn kho không đáp ứng
+        DB-->>API: Không đủ số lượng khả dụng
+        API-->>UI: 400 Bad Request ("Hết hàng hoặc vượt quá tồn kho")
+        UI-->>C: Hiển thị cảnh báo số lượng không hợp lệ
+    else Tồn kho hợp lệ
+        API->>DB: Tạo Order (PENDING_PAYMENT) & tính tổng tiền phía Server
+        DB-->>API: Trả về order_id & order_code
+        API-->>UI: 201 Created (Thông tin đơn hàng & mã QR mô phỏng)
+        UI-->>C: Hiển thị mã QR thanh toán mô phỏng
+
+        C->>UI: Nhấn xác nhận hoàn tất thanh toán
+        UI->>PAY: POST /api/payments/{orderId} (Mô phỏng thanh toán)
+        PAY->>PAY: Xác thực & xử lý thanh toán mô phỏng
+
+        alt Thanh toán thất bại
+            PAY->>DB: Lưu Payment (FAILED), Order chuyển PAYMENT_FAILED
+            PAY-->>UI: Thanh toán thất bại
+            UI-->>C: Hiển thị biên nhận điện tử thất bại & hủy thao tác
+        else Thanh toán thành công
+            PAY->>DB: Lưu Payment (SUCCESS), Order chuyển PAID rồi sang DISPENSING
+            PAY-->>UI: Thanh toán thành công, đang nhả hàng...
+
+            loop Cơ chế thử lại nhả hàng (Tối đa N = 2 lần)
+                API->>IOT: Gửi lệnh nhả hàng: POST /api/iot/dispense
+                IOT->>IOT: Kích hoạt Servo quay nhả khay trái cây
+                IOT-->>API: Trả về phản hồi cảm biến nhả hàng
+                alt Nhả hàng thành công
+                    API->>DB: Ghi nhận DispensingLog (SUCCESS)
+                    API->>DB: Trừ tồn kho sản phẩm (stockQuantity - Qty)
+                    API->>DB: Cập nhật Order (COMPLETED)
+                    API-->>UI: Nhả hàng hoàn tất!
+                    UI-->>C: Hiển thị biên nhận điện tử & khay lấy trái cây
+                else Phát hiện kẹt khay / lỗi Servo
+                    API->>DB: Ghi nhận DispensingLog (FAILED, Attempt)
+                    Note over API,IOT: Tự động gửi lại xung Servo đảo chiều thử lại
+                end
+            end
+
+            opt Khi đã thử hết số lần mà vẫn kẹt hàng
+                API->>DB: Cập nhật Order (NEEDS_HANDLING)
+                API->>DB: Cập nhật Payment (REFUND_PENDING)
+                API->>DB: Tạo Alert & Incident cho Operator
+                API-->>UI: Sự cố nhả hàng! Đang ghi nhận hỗ trợ
+                UI-->>C: Hiển thị biên nhận điện tử lỗi & mã sự cố hỗ trợ
+            end
+        end
+    end

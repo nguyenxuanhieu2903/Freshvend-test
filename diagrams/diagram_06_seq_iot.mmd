@@ -35,6 +35,7 @@ sequenceDiagram
         end
     end
 
+    Note over API,DASH: Trong MVP dashboard polling 5 đến 10 giây. Telemetry có thể REAL hoặc SIMULATED. WebSocket dưới 2 giây là hướng nâng cấp và chưa phải điều kiện MVP.
     Note over API,DB: Background Scheduler quét Heartbeat thiết bị (Mỗi 30 giây)
     opt Nếu last_heartbeat quá thời hạn (> 30 giây)
         API->>DB: Cập nhật trạng thái IOT_DEVICE -> OFFLINE

@@ -9,7 +9,7 @@ flowchart TD
         SEC["Spring Security + JWT Filter<br/>• TLS 1.2+ Encryption<br/>• Role-Based Access Control (RBAC)"]
     end
 
-    subgraph Backend_Layer["3. TẦNG NGHIỆP VỤ (Backend Spring Boot 3 & Java 21)"]
+    subgraph Backend_Layer["3. TẦNG NGHIỆP VỤ (Spring Boot 3 / Java 21 modular monolith)"]
         AUTH_SVC["Auth Service<br/>(Đăng nhập, Token, BCrypt)"]
         PROD_SVC["Product & Catalog Service<br/>(Sản phẩm, giá bán, danh mục)"]
         ORD_SVC["Order & Dispensing Service<br/>(Xử lý đơn, nhả hàng, Retry)"]
@@ -55,3 +55,6 @@ flowchart TD
     ESP --- DHT
     ESP --- DOOR
     ESP --- SERVO
+
+    NOTE_MVP["MVP: các service là module logic trong một ứng dụng Spring Boot và một deployment. Fleet nhiều máy, WebSocket dưới 2 giây, thanh toán thật và làm lạnh vật lý là ngoài phạm vi MVP."]
+    NOTE_MVP -.-> Backend_Layer

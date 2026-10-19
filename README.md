@@ -1,113 +1,56 @@
 # Freshvend-test
 
-Java Spring Boot & PostgreSQL project with Docker.
+Spring Boot REST API with PostgreSQL and Docker Compose. The repository includes a runnable application foundation, the `demo1` team scaffold, requirements documents, and design diagrams.
 
----
+## Project map
 
-## 🐳 Docker Containers
+```text
+Freshvend-test/
+├── diagrams/                      # Mermaid sources and rendered PNGs
+├── docs/                           # Requirements, proposal, and scaffold guide
+├── src/main/java/com/freshvend/    # Spring Boot application
+│   ├── controller/                 # Health endpoint
+│   └── demo1/                      # Domain, DTO, repository, service, controller scaffold
+├── src/main/resources/             # Application configuration
+├── src/test/                       # Application tests
+├── docker-compose.yml              # App and PostgreSQL services
+├── Dockerfile
+└── pom.xml                         # Maven dependencies and build
+```
 
-| Container Name | Service | Image | Host Port | Purpose |
-| :--- | :--- | :--- | :--- | :--- |
-| **`freshvend_app`** | `app` | Spring Boot 3 + Java 21 | `8080` | Spring Boot REST backend |
-| **`freshvend_db`** | `db` | `postgres:16-alpine` | `5432` | PostgreSQL database |
+Use [docs/README.md](docs/README.md) to browse requirements and project documents, [docs/demo1-scaffold.md](docs/demo1-scaffold.md) for the Java package map and suggested team split, and [diagrams/README.md](diagrams/README.md) to browse the diagrams.
 
----
+## Run with Docker
 
-## 🚀 Quick Start
+Start the application and database:
 
-### 1. Start Both Containers
 ```powershell
 docker compose up --build -d
-```
-
-### 2. Check Container Status
-```powershell
 docker compose ps
 ```
-You should see:
-```text
-NAME              IMAGE                    STATUS                   PORTS
-freshvend_app     freshvend-test-app       Up                       0.0.0.0:8080->8080/tcp
-freshvend_db      postgres:16-alpine       Up (healthy)             0.0.0.0:5432->5432/tcp
+
+The application listens on port `8080`; PostgreSQL listens on port `5432`. Check the health endpoint at [http://localhost:8080/api/health](http://localhost:8080/api/health), or run:
+
+```powershell
+curl.exe http://localhost:8080/api/health
 ```
 
-### 3. Check Logs
+View logs and stop the services:
+
 ```powershell
-# Follow all logs
 docker compose logs -f
-
-# Follow Spring Boot container logs
-docker logs -f freshvend_app
-
-# Follow PostgreSQL container logs
-docker logs -f freshvend_db
-```
-
-### 4. Verify Application and Database Health
-Once running, check the health endpoint:
-- **Browser**: [http://localhost:8080/api/health](http://localhost:8080/api/health)
-- **PowerShell / Terminal**:
-  ```powershell
-  curl.exe http://localhost:8080/api/health
-  ```
-
-*Expected JSON output:*
-```json
-{
-  "service": "Freshvend-test",
-  "status": "UP",
-  "database": {
-    "status": "UP",
-    "databaseProduct": "PostgreSQL",
-    "databaseVersion": "16.x"
-  }
-}
-```
-
-### 5. Access PostgreSQL CLI Directly
-```powershell
-docker exec -it freshvend_db psql -U postgres -d freshvend_db
-```
-
-### 6. Stop Containers
-```powershell
 docker compose down
-
-# To also remove persistent database volume:
-docker compose down -v
 ```
 
----
+`docker compose down -v` also removes the local database volume and its data.
 
-## ⚙️ Database Connection Parameters
+## Build locally
 
-- **Database Name**: `freshvend_db`
-- **Username**: `postgres`
-- **Password**: `postgres`
-- **Host (from local machine / DBeaver)**: `localhost:5432`
-- **Host (inside Docker network)**: `freshvend_db:5432`
+Requires Java 21 and Maven:
 
----
-
-## 📁 Project Structure
-
+```powershell
+mvn spring-boot:run
+mvn test
 ```
-Freshvend-test/
-├── src/
-│   ├── main/
-│   │   ├── java/com/freshvend/
-│   │   │   ├── FreshvendApplication.java
-│   │   │   └── controller/
-│   │   │       └── HealthController.java
-│   │   └── resources/
-│   │       └── application.properties
-│   └── test/
-│       └── java/com/freshvend/
-│           └── FreshvendApplicationTests.java
-├── docker-compose.yml
-├── Dockerfile
-├── pom.xml
-├── .gitignore
-├── .dockerignore
-└── README.md
-```
+
+Configure database connection settings through `src/main/resources/application.properties` or environment variables as defined there.

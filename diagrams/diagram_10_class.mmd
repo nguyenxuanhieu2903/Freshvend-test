@@ -50,6 +50,7 @@ classDiagram
         -Integer quantity
         -BigDecimal unitPrice
         -BigDecimal subtotal
+        -List<StockReservation> reservations
         +calculateSubtotal() BigDecimal
     }
 
@@ -58,7 +59,7 @@ classDiagram
         -Order order
         -String transactionCode
         -BigDecimal amount
-        -PaymentResult status
+        -PaymentStatus status
         -String paymentMethod
         -LocalDateTime processedAt
         +processSimulated() Boolean
@@ -78,6 +79,7 @@ classDiagram
         -Product product
         -User operator
         -Integer quantity
+        -Integer remainingQuantity
         -LocalDate expiryDate
         -LocalDateTime restockedAt
     }
@@ -96,6 +98,7 @@ classDiagram
         -Long id
         -IoTDevice device
         -BigDecimal temperature
+        -BigDecimal humidity
         -DoorStatus doorStatus
         -DataSource dataSource
         -LocalDateTime recordedAt
@@ -112,9 +115,29 @@ classDiagram
         +acknowledge(User user)
     }
 
+    class StockReservation {
+        -Long id
+        -OrderItem orderItem
+        -RestockHistory restockLot
+        -Integer quantity
+        -ReservationStatus status
+        -LocalDateTime createdAt
+        +consume()
+        +release()
+    }
+
+    class SystemConfig {
+        -Long id
+        -String configKey
+        -String configValue
+        -User updatedBy
+        -LocalDateTime updatedAt
+    }
+
     class Incident {
         -Long id
         -User reportedBy
+        -User resolvedBy
         -Alert linkedAlert
         -String title
         -String description
@@ -125,14 +148,21 @@ classDiagram
         +close()
     }
 
-    User "1" --> "*" Order : places
+    User "0..1" --> "*" Order : places (customer may be anonymous)
     User "1" --> "*" RestockHistory : executes
-    User "1" --> "*" Incident : handles
+    User "0..1" --> "*" Incident : reports
+    User "0..1" --> "*" Incident : resolves
     Order "1" *-- "1..*" OrderItem : contains
-    Order "1" --> "0..1" Payment : settled by
+    Order "1" --> "0..*" Payment : payment attempts
     Order "1" --> "*" DispensingLog : audited by
     OrderItem "*" --> "1" Product : refers to
     Product "1" --> "*" RestockHistory : tracked by
+    OrderItem "1" --> "0..*" StockReservation : reserves lots
+    RestockHistory "1" --> "0..*" StockReservation : allocated FIFO
     IoTDevice "1" --> "*" SensorData : emits
     IoTDevice "1" --> "*" Alert : generates
     Alert "0..1" --> "*" Incident : escalates to
+    User "0..1" --> "*" Alert : acknowledges
+    User "0..1" --> "*" SystemConfig : updates
+
+    note for Product "MVP stores aggregate quantity per product. RestockHistory rows act as FIFO lots; no per-column stock model."

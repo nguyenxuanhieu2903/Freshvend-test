@@ -26,9 +26,12 @@ flowchart TD
         ESP32 --- SENS_ACT
     end
 
-    T_SCREEN -->|"HTTP/HTTPS Port 8080"| APP
-    OP_MOB -->|"HTTP/HTTPS Port 8080"| APP
-    AD_PC -->|"HTTP/HTTPS Port 8080"| APP
+    T_SCREEN -->|"HTTP Port 8080 (MVP)"| APP
+    OP_MOB -->|"HTTP Port 8080 (MVP)"| APP
+    AD_PC -->|"HTTP Port 8080 (MVP)"| APP
 
     APP -->|"JDBC Connection Port 5432"| PG
     ESP32 -->|"Wi-Fi REST API Port 8080"| APP
+
+    SCOPE["MVP deployment: một backend, một PostgreSQL và một máy IoT. HTTPS cần TLS termination khi triển khai; fleet/cloud là mở rộng tương lai."]
+    SCOPE -.-> Docker_Host

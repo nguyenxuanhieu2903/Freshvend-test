@@ -17,7 +17,7 @@ erDiagram
         text description
         varchar image_url
         decimal price
-        integer stock_quantity
+        integer stock_quantity "aggregate of remaining restock lots"
         integer low_stock_threshold
         varchar status "ACTIVE, DISCONTINUED"
         timestamp created_at
@@ -49,7 +49,7 @@ erDiagram
         bigint order_id FK
         varchar transaction_code UK
         decimal amount
-        varchar status "SUCCESS, FAILED"
+        varchar status "SUCCESS, FAILED, REFUND_PENDING, REFUNDED"
         varchar payment_method "SIMULATED_QR, SIMULATED_EWALLET"
         timestamp processed_at
     }
@@ -68,8 +68,19 @@ erDiagram
         bigint product_id FK
         bigint operator_id FK
         integer quantity
+        integer remaining_quantity "FIFO lot balance"
         date expiry_date
         timestamp restocked_at
+    }
+
+    STOCK_RESERVATION {
+        bigint id PK
+        bigint order_item_id FK
+        bigint restock_history_id FK
+        integer quantity
+        varchar status "HELD, CONSUMED, RELEASED"
+        timestamp created_at
+        timestamp updated_at
     }
 
     IOT_DEVICE {
@@ -86,6 +97,7 @@ erDiagram
         bigint id PK
         bigint device_id FK
         decimal temperature
+        decimal humidity "optional"
         varchar door_status "OPEN, CLOSED, UNKNOWN"
         varchar data_source "REAL, SIMULATED"
         timestamp recorded_at
@@ -107,7 +119,7 @@ erDiagram
 
     INCIDENT {
         bigint id PK
-        bigint reported_by FK
+        bigint reported_by FK "nullable for system-created incidents"
         bigint alert_id FK "nullable"
         varchar title
         text description
@@ -138,12 +150,17 @@ erDiagram
         timestamp updated_at
     }
 
-    USERS ||--o{ ORDERS : "places"
+    USERS o|--o{ ORDERS : "places (customer may be anonymous)"
     USERS ||--o{ RESTOCK_HISTORY : "performs"
-    USERS ||--o{ INCIDENT : "reports"
+    USERS o|--o{ INCIDENT : "reports"
+    USERS o|--o{ INCIDENT : "resolves"
+    USERS o|--o{ ALERT : "acknowledges"
+    USERS o|--o{ SYSTEM_CONFIG : "updates"
     USERS ||--o{ AUDIT_LOG : "triggers"
     PRODUCT ||--o{ ORDER_ITEM : "included in"
     PRODUCT ||--o{ RESTOCK_HISTORY : "stocked"
+    ORDER_ITEM ||--o{ STOCK_RESERVATION : "reserves FIFO lots"
+    RESTOCK_HISTORY ||--o{ STOCK_RESERVATION : "allocated to orders"
     PRODUCT ||--o{ ALERT : "monitored by"
     ORDERS ||--|{ ORDER_ITEM : "contains"
     ORDERS ||--o{ PAYMENT : "paid by"
@@ -151,3 +168,8 @@ erDiagram
     IOT_DEVICE ||--o{ SENSOR_DATA : "reports"
     IOT_DEVICE ||--o{ ALERT : "triggers"
     ALERT ||--o{ INCIDENT : "generates"
+
+    %% MVP manages aggregate stock per product, not physical machine columns.
+    %% Restock rows are FIFO lots; stock_quantity is the sum of remaining_quantity.
+    %% HELD reservations prevent concurrent orders overselling; consume on successful dispense,
+    %% release on payment failure/cancel, or retain for operator resolution.

@@ -1,56 +1,116 @@
-# Freshvend-test
+# Freshvend
 
-Spring Boot REST API with PostgreSQL and Docker Compose. The repository includes a runnable application foundation, the `demo1` team scaffold, requirements documents, and design diagrams.
+Freshvend is a Spring Boot REST API for a fresh food vending system. The project contains a Java 21 application, a PostgreSQL database, a Docker Compose setup, and editable Mermaid design diagrams.
 
-## Project map
+## System overview
+
+Docker Compose starts two services:
+
+```text
+Client
+  |
+  | HTTP, port 8080
+  v
+Spring Boot application
+  |
+  | PostgreSQL, port 5432
+  v
+PostgreSQL database
+```
+
+The Spring Boot application uses Spring Web for REST endpoints, Spring Data JPA and Hibernate for persistence, and PostgreSQL as its database. The `demo1` packages organize the feature scaffold into controllers, services, repositories, entities, enums, and request/response DTOs. The application also exposes a health endpoint that reports application and database connectivity.
+
+## Repository structure
 
 ```text
 Freshvend-test/
-├── diagrams/                      # Mermaid sources and rendered PNGs
-├── docs/                           # Requirements, proposal, and scaffold guide
-├── src/main/java/com/freshvend/    # Spring Boot application
-│   ├── controller/                 # Health endpoint
-│   └── demo1/                      # Domain, DTO, repository, service, controller scaffold
-├── src/main/resources/             # Application configuration
-├── src/test/                       # Application tests
-├── docker-compose.yml              # App and PostgreSQL services
-├── Dockerfile
-└── pom.xml                         # Maven dependencies and build
+|-- diagrams/                         Mermaid sources and PNG previews
+|-- docs/                             Project documentation
+|-- src/
+|   |-- main/java/com/freshvend/
+|   |   |-- controller/               Application health endpoint
+|   |   `-- demo1/
+|   |       |-- controller/           REST controllers
+|   |       |-- domain/entity/         JPA entities
+|   |       |-- domain/enums/          Domain status and type enums
+|   |       |-- dto/request/           API request models
+|   |       |-- dto/response/          API response models
+|   |       |-- repository/            Spring Data repositories
+|   |       `-- service/               Application services
+|   `-- main/resources/                Spring configuration
+|-- docker-compose.yml                 Application and PostgreSQL services
+|-- Dockerfile                         Multi-stage Java 21 container build
+`-- pom.xml                            Maven project and dependencies
 ```
 
-Use [docs/README.md](docs/README.md) to browse requirements and project documents, [docs/demo1-scaffold.md](docs/demo1-scaffold.md) for the Java package map and suggested team split, and [diagrams/README.md](diagrams/README.md) to browse the diagrams.
+The design diagram index is [diagrams/README.md](diagrams/README.md). Each diagram has an editable `.mmd` source and a `.png` preview.
 
-## Run with Docker
+## Run with Docker Compose
 
-Start the application and database:
+Requirements: Docker Engine with the Docker Compose plugin.
+
+From the repository root, build and start the application and database:
 
 ```powershell
 docker compose up --build -d
+```
+
+Check service status and follow application logs:
+
+```powershell
 docker compose ps
+docker compose logs -f app
 ```
 
-The application listens on port `8080`; PostgreSQL listens on port `5432`. Check the health endpoint at [http://localhost:8080/api/health](http://localhost:8080/api/health), or run:
+The API listens on `http://localhost:8080`. PostgreSQL is published on port `5432`. Check application and database connectivity at:
 
-```powershell
-curl.exe http://localhost:8080/api/health
+```text
+http://localhost:8080/api/health
 ```
 
-View logs and stop the services:
+Stop the services while retaining database data:
 
 ```powershell
-docker compose logs -f
 docker compose down
 ```
 
-`docker compose down -v` also removes the local database volume and its data.
+Remove the services and the database volume, including its stored data:
 
-## Build locally
+```powershell
+docker compose down -v
+```
 
-Requires Java 21 and Maven:
+The Compose configuration creates a named volume called `freshvend_pgdata`, so database records remain after a normal stop and restart. The Compose file currently uses development credentials (`postgres` / `postgres`); replace them before using this setup outside local development.
+
+## Run locally
+
+Requirements: Java 21, Maven, and a PostgreSQL database. Start PostgreSQL separately, then run the application from the repository root:
 
 ```powershell
 mvn spring-boot:run
-mvn test
 ```
 
-Configure database connection settings through `src/main/resources/application.properties` or environment variables as defined there.
+By default, the application connects to `localhost:5432`, database `freshvend_db`, with username and password `postgres`. Configure the connection with these environment variables:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_NAME` | `freshvend_db` | Database name |
+| `DB_USERNAME` | `postgres` | Database username |
+| `DB_PASSWORD` | `postgres` | Database password |
+
+For example, in PowerShell:
+
+```powershell
+$env:DB_HOST = "localhost"
+$env:DB_PORT = "5432"
+$env:DB_NAME = "freshvend_db"
+$env:DB_USERNAME = "postgres"
+$env:DB_PASSWORD = "postgres"
+mvn spring-boot:run
+```
+
+## Health endpoint
+
+`GET /api/health` returns the application status and PostgreSQL connection status, including the database product and version when the connection succeeds.

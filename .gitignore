@@ -1,0 +1,32 @@
+# ==============================================================================
+# FreshVend Project Root .gitignore
+# ==============================================================================
+
+# Compiled binaries and target directories
+target/
+**/target/
+build/
+**/build/
+*.class
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.DS_Store
+
+# Logs and runtime artifacts
+logs/
+*.log
+
+# Docker and local storage volumes
+postgres_data/
+
+# OS specific files
+Thumbs.db

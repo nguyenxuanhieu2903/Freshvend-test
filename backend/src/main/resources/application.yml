@@ -1,0 +1,72 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: freshvend-backend
+
+  # ----------------------------------------------------
+  # Database Configuration (PostgreSQL)
+  # Dynamic environment variables with defaults for Local & Docker
+  # ----------------------------------------------------
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:freshvend_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgrespassword}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # ----------------------------------------------------
+  # Spring Data JPA / Hibernate Configuration
+  # ----------------------------------------------------
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Ho_Chi_Minh
+    open-in-view: false
+
+  # ----------------------------------------------------
+  # Thymeleaf Template Engine Configuration
+  # ----------------------------------------------------
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    check-template-location: true
+
+  # ----------------------------------------------------
+  # Static Resources Configuration
+  # Maps both internal classpath and external root frontend/static folder
+  # ----------------------------------------------------
+  web:
+    resources:
+      static-locations: classpath:/static/,classpath:/public/,file:../frontend/static/,file:frontend/static/
+
+# ----------------------------------------------------
+# Logging Configuration
+# ----------------------------------------------------
+logging:
+  level:
+    root: INFO
+    com.freshvend: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

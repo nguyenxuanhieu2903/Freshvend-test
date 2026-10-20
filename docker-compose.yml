@@ -1,0 +1,69 @@
+services:
+  # ============================================================================
+  # Service 1: PostgreSQL Database Server
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: freshvend-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: freshvend_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d freshvend_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - freshvend-network
+
+  # ============================================================================
+  # Service 2: Spring Boot Application (FreshVend Backend)
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freshvend-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: freshvend_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgrespassword
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/freshvend_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgrespassword
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "8080:8080"
+    networks:
+      - freshvend-network
+
+# ==============================================================================
+# Persistent Volumes
+# ==============================================================================
+volumes:
+  postgres_data:
+    name: freshvend_postgres_data
+
+# ==============================================================================
+# Isolated Bridge Network
+# ==============================================================================
+networks:
+  freshvend-network:
+    name: freshvend-network
+    driver: bridge

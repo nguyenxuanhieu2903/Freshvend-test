@@ -1,0 +1,90 @@
+/* FreshVend - giao diện dùng chung (FE3). Chỉ sửa token ở :root khi cần đổi màu/cỡ chữ. */
+:root{
+  --canvas:#F2F6F4; --surface:#FFFFFF; --ink:#0E2F2A; --ink-soft:#4A645E;
+  --green:#14805E; --green-dark:#0D5E45; --pink:#D6336C; --ice:#DCEEF2; --line:#D3E0DB;
+  --warn:#B45309; --danger:#B42318;
+  --radius:10px; --tap:48px;           /* --tap: vùng chạm tối thiểu cho màn hình cảm ứng */
+  --font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:var(--font);
+  background:var(--canvas);color:var(--ink);line-height:1.55}
+h1{font-size:1.75rem;line-height:1.25;margin:0 0 .5rem}
+h2{font-size:1.25rem;margin:0 0 .5rem}
+a{color:var(--green-dark)}
+.muted{color:var(--ink-soft)}
+:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+.container{width:min(1200px,100% - 2rem);margin-inline:auto}
+main{padding:1.5rem 0 2rem}
+
+/* Nút */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:var(--tap);padding:0 1.25rem;
+  border:0;border-radius:var(--radius);background:var(--green);color:#fff;font:600 1rem var(--font);
+  cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--green-dark)}
+.btn:disabled{background:var(--line);color:var(--ink-soft);cursor:not-allowed}
+.btn--accent{background:var(--pink)}
+.btn--accent:hover{background:#B02458}
+.btn--ghost{background:transparent;color:var(--green-dark);box-shadow:inset 0 0 0 2px var(--green)}
+.btn--ghost:hover{background:var(--ice)}
+.btn--lg{min-height:64px;font-size:1.25rem}   /* dùng cho kiosk */
+.btn--block{width:100%}
+
+/* Form và thông báo */
+.field{display:grid;gap:.35rem;margin-bottom:1rem}
+.field label{font-weight:600}
+.field input,.field select{min-height:var(--tap);padding:0 .9rem;border:1.5px solid var(--line);
+  border-radius:var(--radius);font:inherit;background:#fff;color:var(--ink)}
+.alert{padding:.75rem 1rem;border-radius:var(--radius);margin-bottom:1rem}
+.alert--error{background:#FDECEA;color:var(--danger)}
+.alert--ok{background:#E6F4EE;color:var(--green-dark)}
+
+/* Khối nội dung, lưới, nhãn trạng thái (FE1/FE2 dùng lại) */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:1.25rem}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.badge{display:inline-block;padding:.15rem .6rem;border-radius:999px;font-size:.875rem;font-weight:600}
+.badge--ok{background:#E6F4EE;color:var(--green-dark)}
+.badge--warn{background:#FEF3E2;color:var(--warn)}
+.badge--off{background:#FDECEA;color:var(--danger)}
+.badge--sim{background:var(--ice);color:var(--ink)}   /* nhãn "Mô phỏng" cho dữ liệu giả lập */
+
+/* Điều hướng */
+.brand{display:inline-flex;align-items:center;font-weight:700;font-size:1.35rem;color:var(--ink);text-decoration:none}
+.brand::before{content:"";width:14px;height:14px;margin-right:.5rem;border-radius:50%;background:var(--pink)}
+.nav{display:flex;gap:.25rem;margin:0;padding:0;list-style:none}
+.nav a{display:flex;align-items:center;min-height:var(--tap);padding:0 1rem;border-radius:var(--radius);
+  color:inherit;text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--ice)}
+.nav a.is-active{background:var(--ice);font-weight:600}
+
+/* Header/footer trang khách */
+.site-header{background:var(--surface);border-bottom:1px solid var(--line)}
+.site-header .container{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:68px;flex-wrap:wrap}
+.site-footer{margin-top:auto;padding:1rem 0;border-top:1px solid var(--line);background:var(--surface);
+  color:var(--ink-soft);font-size:.9rem}
+
+/* Khung trang quản lý: sidebar + nội dung */
+.shell{display:grid;grid-template-columns:240px 1fr;flex:1}
+.shell__main{min-width:0}
+.topbar{display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;background:var(--surface);border-bottom:1px solid var(--line)}
+.sidebar{display:flex;flex-direction:column;gap:1rem;padding:1rem;background:var(--ink);color:#DCEBE6}
+.sidebar .brand{color:#fff}
+.sidebar .nav{flex-direction:column}
+.sidebar .nav a:hover{background:rgba(255,255,255,.1)}
+.sidebar .nav a.is-active{background:var(--green);color:#fff}
+.sidebar .btn--ghost{color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
+.sidebar form{margin-top:auto}
+.menu-toggle{display:none}
+
+/* Trang đăng nhập */
+.auth{flex:1;display:grid;place-items:center;padding:1.5rem}
+.auth__card{width:min(420px,100%);padding:2rem;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.auth__card .brand{margin-bottom:1rem}
+
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:fixed;inset:0 auto 0 0;width:260px;z-index:20;transform:translateX(-100%);transition:transform .2s}
+  .sidebar.is-open{transform:none}
+  .menu-toggle{display:inline-flex}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}

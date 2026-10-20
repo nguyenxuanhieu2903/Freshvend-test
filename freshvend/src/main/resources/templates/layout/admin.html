@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!-- Layout trang quản lý (Operator/Admin). Cách dùng: xem demo/admin.html -->
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content, active)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:replace="${title}">FreshVend quản lý</title>
+  <th:block th:replace="~{fragments/head :: assets}"/>
+</head>
+<body>
+  <div class="shell">
+    <th:block th:replace="~{fragments/sidebar :: sidebar(${active})}"/>
+    <div class="shell__main">
+      <div class="topbar">
+        <button class="btn btn--ghost menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false" data-menu-toggle>Menu</button>
+      </div>
+      <th:block th:replace="${content}"/>
+    </div>
+  </div>
+  <script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

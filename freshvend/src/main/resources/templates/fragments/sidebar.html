@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Menu trang quản lý. Tham số active: dashboard | inventory | alerts | incidents | products | accounts | reports
+     TODO (sau khi có Spring Security): thêm thymeleaf-extras-springsecurity6 và gắn
+     sec:authorize="hasRole('ADMIN')" cho các mục chỉ Admin (products, accounts, reports). -->
+<aside id="sidebar" class="sidebar" th:fragment="sidebar(active)">
+  <a class="brand" th:href="@{/admin}">FreshVend</a>
+  <nav aria-label="Quản lý">
+    <ul class="nav">
+      <li><a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? 'is-active'">Tổng quan</a></li>
+      <li><a th:href="@{/admin/inventory}" th:classappend="${active == 'inventory'} ? 'is-active'">Tồn kho</a></li>
+      <li><a th:href="@{/admin/alerts}" th:classappend="${active == 'alerts'} ? 'is-active'">Cảnh báo</a></li>
+      <li><a th:href="@{/admin/incidents}" th:classappend="${active == 'incidents'} ? 'is-active'">Sự cố</a></li>
+      <li><a th:href="@{/admin/products}" th:classappend="${active == 'products'} ? 'is-active'">Sản phẩm và giá</a></li>
+      <li><a th:href="@{/admin/accounts}" th:classappend="${active == 'accounts'} ? 'is-active'">Tài khoản</a></li>
+      <li><a th:href="@{/admin/reports}" th:classappend="${active == 'reports'} ? 'is-active'">Báo cáo</a></li>
+    </ul>
+  </nav>
+  <form th:action="@{/logout}" method="post">
+    <button class="btn btn--ghost btn--block" type="submit">Đăng xuất</button>
+  </form>
+</aside>
+</body>
+</html>

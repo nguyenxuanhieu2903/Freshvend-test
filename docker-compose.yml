@@ -1,0 +1,51 @@
+services:
+  # ---- PostgreSQL Database ----
+  db:
+    image: postgres:16-alpine
+    container_name: freshvend_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: freshvend_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - freshvend_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d freshvend_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - freshvend-network
+
+  # ---- Spring Boot Application ----
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freshvend_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: freshvend_db
+      DB_PORT: 5432
+      DB_NAME: freshvend_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - freshvend-network
+
+volumes:
+  freshvend_pgdata:
+    driver: local
+
+networks:
+  freshvend-network:
+    driver: bridge

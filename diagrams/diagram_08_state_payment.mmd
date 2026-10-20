@@ -1,0 +1,12 @@
+stateDiagram-v2
+    [*] --> NOT_STARTED : Khởi tạo đơn hàng mới
+
+    NOT_STARTED --> SUCCESS : Thanh toán mô phỏng thành công
+    NOT_STARTED --> FAILED : Thanh toán mô phỏng thất bại / hủy
+
+    SUCCESS --> REFUND_PENDING : Nhả hàng thất bại (NEEDS_HANDLING)
+    REFUND_PENDING --> REFUNDED : Xác nhận xử lý hoàn tiền mô phỏng
+
+    FAILED --> [*]
+    SUCCESS --> [*] : Nhả hàng thành công và không cần hoàn tiền
+    REFUNDED --> [*]

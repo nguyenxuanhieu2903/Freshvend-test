@@ -1,0 +1,43 @@
+flowchart TD
+    START(["Bắt đầu giao dịch"]) --> SELECT["Khách hàng duyệt & chọn khay trái cây trên màn hình"]
+    SELECT --> CHECK_STOCK{"Khóa tồn kho và kiểm tra lượng khả dụng?"}
+
+    CHECK_STOCK -->|Không đủ| OUT_OF_STOCK["Thông báo hết hàng / yêu cầu giảm số lượng"]
+    OUT_OF_STOCK --> SELECT
+
+    CHECK_STOCK -->|Đủ tồn kho| CREATE_ORD["Giữ lượng hàng theo lô FIFO (HELD)<br/>Tạo PENDING_PAYMENT và tính tổng phía server"]
+    CREATE_ORD --> DISPLAY_PAY["Hiển thị mã QR thanh toán mô phỏng"]
+    DISPLAY_PAY --> PAY_ACTION{"Khách hàng xác nhận thanh toán?"}
+
+    PAY_ACTION -->|Thất bại / Hủy| CANCEL_PAY["Ghi nhận PAYMENT_FAILED (hoặc CANCELLED nếu khách hủy/hết hạn)<br/>Giải phóng reservation & xuất biên nhận thất bại"]
+    CANCEL_PAY --> END_FAIL(["Kết thúc giao dịch thất bại"])
+
+    PAY_ACTION -->|Thành công| SET_PAID["Cập nhật đơn hàng: PAID -> DISPENSING"]
+    SET_PAID --> SEND_SERVO["Gửi tín hiệu kích hoạt động cơ Servo nhả khay"]
+    SEND_SERVO --> VERIFY_DISP{"Cảm biến xác nhận khay đã rơi?"}
+
+    VERIFY_DISP -->|Thành công| DISP_OK["Ghi nhận nhả hàng SUCCESS<br/>Consume lô FIFO và cập nhật tổng tồn kho<br/>Đơn hàng chuyển: COMPLETED"]
+    DISP_OK --> RECEIPT["In / Hiển thị biên nhận điện tử hoàn tất<br/>Mở cửa sổ nhận sản phẩm"]
+    RECEIPT --> CHECK_LOW{"Tồn kho <= Ngưỡng cảnh báo?"}
+
+    CHECK_LOW -->|Có| GEN_ALERT["Tự động phát ALERT tồn kho thấp cho Operator"]
+    CHECK_LOW -->|Không| END_SUCCESS(["Giao dịch hoàn tất thành công"])
+    GEN_ALERT --> END_SUCCESS
+
+    VERIFY_DISP -->|Kẹt hàng| RETRY_CHECK{"Đã dùng hết 2 lần thử lại bổ sung chưa?"}
+    RETRY_CHECK -->|Chưa đủ| RETRY_SERVO["Tự động đảo chiều Servo & nhả lại"]
+    RETRY_SERVO --> VERIFY_DISP
+
+    RETRY_CHECK -->|Đã hết lượt| DISP_FAIL["Chuyển đơn sang NEEDS_HANDLING<br/>Giữ reservation trong lúc chờ xử lý<br/>Tạo Alert và Incident cho Operator"]
+    DISP_FAIL --> RECEIPT_ERR["Hiển thị biên nhận lỗi kèm mã sự cố hỗ trợ"]
+    RECEIPT_ERR --> END_FAIL
+
+    OP_RESOLVE{"Operator chọn phương án xử lý"}
+    DISP_FAIL -.-> OP_RESOLVE
+    OP_RESOLVE -->|Nhả/cấp bù hàng| OP_COMPLETE["Consume reservation<br/>Order COMPLETED"]
+    OP_RESOLVE -->|Hoàn tiền mô phỏng| REFUND["Payment REFUND_PENDING → REFUNDED<br/>Release reservation; Order CANCELLED"]
+    OP_COMPLETE --> END_SUCCESS
+    REFUND --> END_FAIL
+
+    NOTE["MVP: tồn kho tổng theo sản phẩm; lịch sử nhập là các lô FIFO, không theo dõi từng cột vật lý."]
+    NOTE -.-> CHECK_STOCK

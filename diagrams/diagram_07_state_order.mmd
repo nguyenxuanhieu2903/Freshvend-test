@@ -1,0 +1,19 @@
+stateDiagram-v2
+    [*] --> PENDING_PAYMENT : Khách hàng tạo đơn hàng
+
+    PENDING_PAYMENT --> PAID : Thanh toán mô phỏng thành công
+    PENDING_PAYMENT --> PAYMENT_FAILED : Thanh toán thất bại và release reservation
+    PENDING_PAYMENT --> CANCELLED : Hết hạn hoặc hủy đơn và release reservation
+
+    PAID --> DISPENSING : Backend phát lệnh cho cơ cấu Servo
+
+    DISPENSING --> COMPLETED : Nhả hàng thành công (Trừ tồn kho, in biên nhận)
+    DISPENSING --> DISPENSING : Phát hiện kẹt khay -> Tự động thử lại (Retry)
+    DISPENSING --> NEEDS_HANDLING : Hết số lần thử lại vẫn kẹt hàng
+
+    NEEDS_HANDLING --> COMPLETED : Operator nhả/cấp bù hàng và consume reservation
+    NEEDS_HANDLING --> CANCELLED : Hoàn tiền mô phỏng xác nhận và release reservation
+
+    PAYMENT_FAILED --> [*]
+    CANCELLED --> [*]
+    COMPLETED --> [*]

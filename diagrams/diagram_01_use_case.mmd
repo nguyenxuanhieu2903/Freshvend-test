@@ -1,0 +1,61 @@
+flowchart LR
+    Customer(("Customer<br/>(MVP: no login required)"))
+    Operator(("Operator"))
+    Admin(("Admin"))
+    IoT(("Thiết bị IoT"))
+
+    subgraph UC_Customer["Khách hàng (Customer)"]
+        UC1["UC-01: Xem danh mục sản phẩm & giá"]
+        UC2["UC-02: Tạo đơn hàng & giỏ hàng"]
+        UC3["UC-03: Thanh toán mô phỏng (QR/E-Wallet)"]
+        UC4["UC-04: Theo dõi trạng thái đơn hàng"]
+        UC5["UC-05: Nhận biên nhận điện tử & nhận hàng"]
+    end
+
+    subgraph UC_Operator["Nhân viên vận hành (Operator)"]
+        UC6["UC-06: Đăng nhập & xem tổng quan máy"]
+        UC7["UC-07: Bổ sung hàng hóa (Restock) & ghi hạn sử dụng"]
+        UC8["UC-08: Tiếp nhận cảnh báo nhiệt độ / tồn kho / cửa mở"]
+        UC9["UC-09: Ghi nhận & cập nhật xử lý sự cố (Incident)"]
+        UC10["UC-10: Xem lịch sử vận hành & cấp phát"]
+    end
+
+    subgraph UC_Admin["Quản trị viên (Admin)"]
+        UC11["UC-11: Quản lý danh mục, thông tin sản phẩm & giá bán"]
+        UC12["UC-12: Quản lý tài khoản nội bộ & phân quyền (RBAC)"]
+        UC13["UC-13: Cấu hình ngưỡng cảnh báo & tin nhắn Graceful Degradation"]
+        UC14["UC-14: Xem báo cáo doanh thu, tồn kho & vận hành"]
+        UC15["UC-15: Xuất báo cáo định dạng PDF/CSV"]
+        UC16["UC-16: Tra cứu nhật ký hệ thống (Audit Log)"]
+    end
+
+    subgraph UC_IoT["Hệ thống IoT & Tự động hóa"]
+        UC17["UC-17: Thu thập & gửi dữ liệu nhiệt độ (DHT22)"]
+        UC18["UC-18: Giám sát trạng thái đóng/mở cửa máy"]
+        UC19["UC-19: Điều khiển động cơ Servo nhả hàng tự động"]
+        UC20["UC-20: Tự động thử lại (Retry) khi phát hiện kẹt hàng"]
+    end
+
+    Customer --- UC1
+    Customer --- UC2
+    Customer --- UC3
+    Customer --- UC4
+    Customer --- UC5
+
+    Operator --- UC6
+    Operator --- UC7
+    Operator --- UC8
+    Operator --- UC9
+    Operator --- UC10
+
+    Admin --- UC11
+    Admin --- UC12
+    Admin --- UC13
+    Admin --- UC14
+    Admin --- UC15
+    Admin --- UC16
+
+    IoT --- UC17
+    IoT --- UC18
+    IoT --- UC19
+    IoT --- UC20

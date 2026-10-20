@@ -1,0 +1,51 @@
+sequenceDiagram
+    autonumber
+    participant SENS as Cảm biến (DHT22 & Cửa từ)
+    participant ESP as Vi điều khiển ESP32
+    participant API as Backend IoTService
+    participant DB as PostgreSQL DB
+    participant DASH as Giao diện Operator/Admin
+
+    loop Chu kỳ gửi dữ liệu định kỳ (Mỗi 10 giây)
+        ESP->>SENS: Đọc tín hiệu nhiệt độ & độ ẩm (DHT22)
+        SENS-->>ESP: Nhiệt độ hiện tại: 7.2°C
+        ESP->>SENS: Đọc trạng thái công tắc cửa từ
+        SENS-->>ESP: Trạng thái cửa: CLOSED (Đóng)
+
+        ESP->>API: HTTP POST /api/iot/telemetry<br/>{deviceId, temp: 7.2, door: "CLOSED", source: "REAL"}
+        API->>API: Validate khuôn mẫu dữ liệu JSON & dải giá trị
+
+        alt Dữ liệu không hợp lệ / lỗi cảm biến
+            API-->>ESP: 400 Bad Request
+            Note over API: Bỏ qua, không tạo cảnh báo sai từ dữ liệu lỗi
+        else Dữ liệu hợp lệ
+            API->>DB: Lưu bản ghi SENSOR_DATA & cập nhật last_heartbeat thiết bị
+            API->>API: So sánh ngưỡng nhiệt độ cấu hình (2 - 8°C)
+
+            alt Nhiệt độ vượt ngưỡng an toàn (> 8°C)
+                API->>DB: Tạo ALERT (Loại: TEMPERATURE_HIGH, Mức độ: CRITICAL)
+                API->>DB: Bật cờ Graceful Degradation (Cảnh báo màn hình Kiosk)
+            end
+
+            alt Cửa mở vượt thời gian quy định (> 60 giây)
+                API->>DB: Tạo ALERT (Loại: DOOR_OPEN, Mức độ: WARNING)
+            end
+
+            API-->>ESP: 200 OK (Ghi nhận thành công)
+        end
+    end
+
+    Note over API,DASH: Trong MVP dashboard polling 5 đến 10 giây. Telemetry có thể REAL hoặc SIMULATED. WebSocket dưới 2 giây là hướng nâng cấp và chưa phải điều kiện MVP.
+    Note over API,DB: Background Scheduler quét Heartbeat thiết bị (Mỗi 30 giây)
+    opt Nếu last_heartbeat quá thời hạn (> 30 giây)
+        API->>DB: Cập nhật trạng thái IOT_DEVICE -> OFFLINE
+        API->>DB: Tạo ALERT (Loại: DEVICE_OFFLINE, Mức độ: CRITICAL)
+    end
+
+    loop Dashboard Polling định kỳ (Mỗi 5 - 10 giây)
+        DASH->>API: GET /api/iot/status
+        API->>DB: Truy vấn Telemetry mới nhất & danh sách cảnh báo chưa xử lý
+        DB-->>API: Trả về dữ liệu SensorData, Door, Alert
+        API-->>DASH: 200 OK JSON (Bao gồm nhãn REAL / SIMULATED)
+        DASH->>DASH: Hiển thị đồng hồ nhiệt độ, đèn trạng thái & cảnh báo
+    end

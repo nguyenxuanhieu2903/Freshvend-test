@@ -1,0 +1,110 @@
+{
+  "info": {
+    "_postman_id": "freshvend-be3-nhattruong-checkpoint-tuan1",
+    "name": "FreshVend - BE3 Telemetry API (Lê Nguyễn Nhật Trường)",
+    "description": "Bộ kiểm thử hoàn chỉnh cho API POST /api/iot/telemetry theo phân công Tuần 1.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Case 1: [Thành Công] Dữ liệu chuẩn (5.5°C)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"ESP32_01\",\n  \"temperature\": 5.5,\n  \"humidity\": 65.0,\n  \"timestamp\": \"2026-10-19T00:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/iot/telemetry",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "iot", "telemetry"]
+        },
+        "description": "Nhiệt độ 5.5°C hợp lệ. Mong đợi: 200 OK."
+      },
+      "response": []
+    },
+    {
+      "name": "Case 2: [Bắt Lỗi] Thiếu trường deviceId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"temperature\": 15.5,\n  \"humidity\": 65.0,\n  \"timestamp\": \"2026-10-19T00:55:00Z\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/iot/telemetry",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "iot", "telemetry"]
+        },
+        "description": "Cố tình bỏ quên deviceId. Mong đợi: 400 Bad Request kèm thông báo bắt buộc."
+      },
+      "response": []
+    },
+    {
+      "name": "Case 3: [Bắt Lỗi] Nhiệt độ vượt dải cảm biến (150°C)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"ESP32_01\",\n  \"temperature\": 150.0,\n  \"humidity\": 65.0,\n  \"timestamp\": \"2026-10-19T00:55:00Z\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/iot/telemetry",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "iot", "telemetry"]
+        },
+        "description": "Nhiệt độ 150°C vượt dải -40°C đến 80°C. Mong đợi: 400 Bad Request."
+      },
+      "response": []
+    },
+    {
+      "name": "Case 4: [Bắt Lỗi] Thiếu trường temperature",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"ESP32_01\",\n  \"humidity\": 65.0,\n  \"timestamp\": \"2026-10-19T00:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/iot/telemetry",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "iot", "telemetry"]
+        },
+        "description": "Thiếu nhiệt độ. Mong đợi: 400 Bad Request."
+      },
+      "response": []
+    }
+  ]
+}

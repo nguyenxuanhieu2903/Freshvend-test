@@ -18,7 +18,7 @@ Spring Boot application
 PostgreSQL database
 ```
 
-The Spring Boot application uses Spring Web for REST endpoints, Spring Data JPA and Hibernate for persistence, and PostgreSQL as its database. The `demo1` packages organize the feature scaffold into controllers, services, repositories, entities, enums, and request/response DTOs. The application also exposes a health endpoint that reports application and database connectivity.
+The Spring Boot application uses Spring Web for REST endpoints, Spring Data JPA and Hibernate for persistence, PostgreSQL as its database, and Flyway to version the database schema. The `demo1` packages organize the feature scaffold into controllers, services, repositories, entities, enums, and request/response DTOs. The application also exposes a health endpoint that reports application and database connectivity.
 
 ## Repository structure
 
@@ -37,7 +37,9 @@ Freshvend-test/
 |   |       |-- dto/response/          API response models
 |   |       |-- repository/            Spring Data repositories
 |   |       `-- service/               Application services
-|   `-- main/resources/                Spring configuration
+|   `-- main/resources/
+|       |-- application.properties    Spring and database configuration
+|       `-- db/migration/             Versioned schema and sample-data migrations
 |-- docker-compose.yml                 Application and PostgreSQL services
 |-- Dockerfile                         Multi-stage Java 21 container build
 `-- pom.xml                            Maven project and dependencies
@@ -81,6 +83,55 @@ docker compose down -v
 ```
 
 The Compose configuration creates a named volume called `freshvend_pgdata`, so database records remain after a normal stop and restart. The Compose file currently uses development credentials (`postgres` / `postgres`); replace them before using this setup outside local development.
+
+## Database schema and sample data
+
+On startup, Flyway applies the SQL migrations in `src/main/resources/db/migration` before Hibernate validates the mapped entities. `V1` creates the tables, foreign keys, basic data checks, and indexes. `V2` inserts a small, linked demo dataset: three demo users, four products, two vending devices, restock lots, two orders, payment and dispensing history, stock reservations, sensor readings, alerts, an incident, and system configuration. Migrations run once per database and are tracked in Flyway's `flyway_schema_history` table.
+
+The sample user password values are deliberately unusable placeholders because authentication and password hashing are not implemented yet. The seeded users are for relational/demo data only; replace their password values through a secure account setup flow before adding authentication. Existing PostgreSQL volumes keep their data and will receive the migrations on the next app startup. To recreate a clean local database and rerun all migrations, use `docker compose down -v` (this permanently removes the local database volume).
+
+### Inspect tables and sample rows with Docker
+
+Run these commands from the repository root in PowerShell. Start the services first if they are not already running:
+
+```powershell
+docker compose up --build -d
+```
+
+To open an interactive PostgreSQL shell inside the database container:
+
+```powershell
+docker compose exec db psql -U postgres -d freshvend_db
+```
+
+At the `freshvend_db=#` prompt, use PostgreSQL commands (these are entered inside `psql`, not directly in PowerShell):
+
+```text
+\dt
+SELECT * FROM product;
+SELECT * FROM users;
+\q
+```
+
+To run a query directly from PowerShell without opening an interactive shell, pass it with `-c`:
+
+```powershell
+docker compose exec db psql -U postgres -d freshvend_db -c "SELECT * FROM product;"
+```
+
+List all public tables, including Flyway's migration-history table:
+
+```powershell
+docker compose exec db psql -U postgres -d freshvend_db -c "\dt"
+```
+
+To inspect every table's rows with one PowerShell command:
+
+```powershell
+docker compose exec -T db sh -c 'for t in $(psql -U postgres -d freshvend_db -Atc "SELECT tablename FROM pg_tables WHERE schemaname = current_schema() ORDER BY tablename"); do echo "===== $t ====="; psql -U postgres -d freshvend_db -c "TABLE \"$t\""; done'
+```
+
+For a fresh local database, set `spring.flyway.enabled=false` only if you are managing the schema yourself. Hibernate uses `ddl-auto=validate`, so it does not create or modify tables.
 
 ## Run locally
 

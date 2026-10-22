@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập - FreshVend</title>
+  <th:block th:replace="~{fragments/head :: assets}"/>
+</head>
+<body>
+<main class="auth">
+  <div class="auth__card">
+    <a class="brand" th:href="@{/}">FreshVend</a>
+    <h1>Đăng nhập quản lý</h1>
+    <p class="muted">Dành cho nhân viên vận hành và quản trị viên.</p>
+    <div class="alert alert--error" role="alert" th:if="${param.error}">Sai tên đăng nhập hoặc mật khẩu.</div>
+    <div class="alert alert--ok" role="status" th:if="${param.logout}">Bạn đã đăng xuất.</div>
+    <!-- Tên field username/password khớp mặc định của Spring Security. th:action tự thêm CSRF token. -->
+    <form th:action="@{/login}" method="post">
+      <div class="field">
+        <label for="username">Tên đăng nhập</label>
+        <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn--block" type="submit">Đăng nhập</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

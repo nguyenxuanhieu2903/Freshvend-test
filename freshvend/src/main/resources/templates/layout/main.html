@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!-- Layout trang khách (kiosk). Cách dùng: xem demo/customer.html -->
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content, active)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:replace="${title}">FreshVend</title>
+  <th:block th:replace="~{fragments/head :: assets}"/>
+</head>
+<body>
+  <th:block th:replace="~{fragments/header :: header(${active})}"/>
+  <th:block th:replace="${content}"/>
+  <th:block th:replace="~{fragments/footer :: footer}"/>
+  <script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

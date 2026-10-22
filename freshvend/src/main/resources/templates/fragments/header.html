@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Header trang khách. Tham số active: 'products' | 'cart' -->
+<header class="site-header" th:fragment="header(active)">
+  <div class="container">
+    <a class="brand" th:href="@{/}">FreshVend</a>
+    <nav aria-label="Chính">
+      <ul class="nav">
+        <li><a th:href="@{/}" th:classappend="${active == 'products'} ? 'is-active'">Sản phẩm</a></li>
+        <li><a th:href="@{/cart}" th:classappend="${active == 'cart'} ? 'is-active'">Giỏ hàng</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+</body>
+</html>

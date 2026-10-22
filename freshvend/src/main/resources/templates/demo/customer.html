@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!-- Mẫu cho FE1: copy cấu trúc này cho trang sản phẩm. Đổi 'products' thành mục menu cần sáng. -->
+<html th:replace="~{layout/main :: layout(~{::title}, ~{::main}, 'products')}" xmlns:th="http://www.thymeleaf.org">
+<head><title>Demo giao diện khách - FreshVend</title></head>
+<body>
+<main class="container">
+  <h1>Chọn hộp trái cây</h1>
+  <p class="muted">Trang mẫu để kiểm tra layout. Nút lớn dành cho màn hình cảm ứng.</p>
+  <div class="grid">
+    <div class="panel">
+      <h2>Hộp xoài và thanh long</h2>
+      <p><span class="badge badge--ok">Còn hàng</span></p>
+      <button class="btn btn--lg btn--block" type="button">Thêm vào giỏ</button>
+    </div>
+    <div class="panel">
+      <h2>Hộp dưa hấu</h2>
+      <p><span class="badge badge--warn">Sắp hết</span></p>
+      <button class="btn btn--lg btn--block" type="button">Thêm vào giỏ</button>
+    </div>
+    <div class="panel">
+      <h2>Hộp ổi</h2>
+      <p><span class="badge badge--off">Hết hàng</span></p>
+      <button class="btn btn--lg btn--block" type="button" disabled>Thêm vào giỏ</button>
+    </div>
+  </div>
+</main>
+</body>
+</html>

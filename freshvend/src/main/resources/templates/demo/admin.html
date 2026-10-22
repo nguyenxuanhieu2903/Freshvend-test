@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!-- Mẫu cho FE2/FE3: trang quản lý. Đổi 'dashboard' thành mục menu cần sáng. -->
+<html th:replace="~{layout/admin :: layout(~{::title}, ~{::main}, 'dashboard')}" xmlns:th="http://www.thymeleaf.org">
+<head><title>Tổng quan - FreshVend quản lý</title></head>
+<body>
+<main class="container">
+  <h1>Tổng quan máy</h1>
+  <div class="grid">
+    <div class="panel"><h2>Nhiệt độ</h2><p>5,2 °C <span class="badge badge--sim">Mô phỏng</span></p></div>
+    <div class="panel"><h2>Thiết bị</h2><p><span class="badge badge--ok">Online</span></p></div>
+    <div class="panel"><h2>Cảnh báo</h2><p><span class="badge badge--warn">2 đang mở</span></p></div>
+    <div class="panel"><h2>Tồn kho thấp</h2><p>3 sản phẩm</p></div>
+  </div>
+</main>
+</body>
+</html>
